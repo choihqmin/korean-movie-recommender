@@ -17,6 +17,19 @@ st.set_page_config(
     layout="wide"
 )
 
+# Chrome 및 외부 번역기로 인한 React DOM 충돌 방지 메타태그 및 속성 설정
+st.markdown(
+    """
+    <meta name="google" content="notranslate">
+    <style>
+        .stApp {
+            translate: no !important;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 # 데이터 및 모델 캐싱 로드 함수
 @st.cache_data
 def load_data():
