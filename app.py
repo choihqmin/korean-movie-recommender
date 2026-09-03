@@ -214,3 +214,13 @@ with st.expander("ℹ️ 3개 추천 모델의 특성 및 차이점 안내"):
     | **Word2Vec** | 단어 분산 표상 평균 (Mean Pooling) | 단어들의 잠재 의미 공간 상 거리를 반영하여 전반적인 토픽 유사도 포착 | 단어 순서나 복합 문맥을 완전히 반영하지 못하는 압축 손실 존재 |
     | **Sentence-BERT** | Transformer 양방향 어텐션 기반 문맥 임베딩 (Dense Vector) | 줄거리 문장의 전체적인 스토리 흐름과 뉘앙스, 시맨틱 문맥을 가장 정교하게 포착 | 문맥적 연관성이 뛰어나나 모델 크기 및 연산 비용이 상대적으로 큼 |
     """)
+
+# 제작자 정보 footer
+st.markdown(
+    """
+    <div style="text-align: center; color: #888888; font-size: 0.85rem; margin-top: 30px; margin-bottom: 10px;">
+        제주대학교 경영정보학과 최하민
+    </div>
+    """,
+    unsafe_allow_html=True
+)
