@@ -4,11 +4,6 @@ import re
 import numpy as np
 import pandas as pd
 import streamlit as st
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-from gensim.models import Word2Vec
-from sentence_transformers import SentenceTransformer
-from kiwipiepy import Kiwi
 
 # 페이지 기본 설정
 st.set_page_config(
@@ -66,45 +61,19 @@ def load_data():
         df['model_text'] = df['clean_overview'] + ' ' + df['genres_str'] + ' ' + df['keywords_str']
     return df
 
+# 실제 사전 계산된 유사도 행렬 로드 함수 (B안)
 @st.cache_resource
-def build_models(df):
-    kiwi = Kiwi()
-    TARGET_TAGS = {'NNG', 'NNP', 'NR', 'NP', 'VV', 'VA', 'MM', 'MAG', 'XR', 'SL'}
+def load_similarity_matrices():
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    npz_path = os.path.join(current_dir, 'similarity_matrices.npz')
     
-    def tokenize_korean(text):
-        tokens = []
-        for token in kiwi.tokenize(text):
-            if token.tag in TARGET_TAGS and len(token.form) > 1:
-                tokens.append(token.form)
-        return tokens
+    if not os.path.exists(npz_path):
+        st.error("⚠️ 유사도 행렬 캐시 파일(`similarity_matrices.npz`)이 존재하지 않습니다.\n\n"
+                 "노트북(`과제3_영화_텍스트분석_추천시스템.ipynb`)을 먼저 실행하여 실제 모델 유사도 행렬을 생성해 주세요.")
+        st.stop()
         
-    df['tokenized'] = df['model_text'].apply(tokenize_korean)
-    df['tokenized_str'] = df['tokenized'].apply(lambda x: ' '.join(x))
-    
-    # 1. TF-IDF
-    tfidf_vectorizer = TfidfVectorizer(ngram_range=(1, 2), min_df=1)
-    tfidf_matrix = tfidf_vectorizer.fit_transform(df['tokenized_str'])
-    tfidf_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
-    
-    # 2. Word2Vec
-    sentences = df['tokenized'].tolist()
-    w2v_model = Word2Vec(sentences=sentences, vector_size=100, window=5, min_count=1, sg=1, epochs=30, seed=42)
-    
-    def get_document_vector(tokens, model):
-        vectors = [model.wv[token] for token in tokens if token in model.wv]
-        if len(vectors) == 0:
-            return np.zeros(model.vector_size)
-        return np.mean(vectors, axis=0)
-        
-    w2v_doc_vectors = np.array([get_document_vector(tokens, w2v_model) for tokens in df['tokenized']])
-    w2v_sim = cosine_similarity(w2v_doc_vectors, w2v_doc_vectors)
-    
-    # 3. Sentence-BERT
-    sbert_model = SentenceTransformer('jhgan/ko-sroberta-multitask')
-    sbert_embeddings = sbert_model.encode(df['model_text'].tolist(), show_progress_bar=False)
-    sbert_sim = cosine_similarity(sbert_embeddings, sbert_embeddings)
-    
-    return tfidf_sim, w2v_sim, sbert_sim
+    data = np.load(npz_path)
+    return data['tfidf_sim'], data['w2v_sim'], data['sbert_sim']
 
 # 추천 목록 산출 헬퍼 함수
 def get_top5_recommendations(title, sim_matrix, df):
@@ -135,8 +104,8 @@ st.caption("빅데이터분석 과제 3 | TF-IDF vs Word2Vec vs Sentence-BERT �
 
 # 데이터 및 모델 로드
 df = load_data()
-with st.spinner("3개 추천 모델을 준비하는 중입니다. 최초 실행에는 20~30초 정도 걸릴 수 있습니다."):
-    tfidf_sim, w2v_sim, sbert_sim = build_models(df)
+with st.spinner("3개 추천 모델(TF-IDF, Word2Vec, S-BERT) 유사도 행렬을 로드하는 중입니다..."):
+    tfidf_sim, w2v_sim, sbert_sim = load_similarity_matrices()
 
 st.divider()
 
