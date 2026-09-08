@@ -1,5 +1,7 @@
 # 🎬 Korean Movie Recommendation System (가상 한국영화 3종 추천 모델 비교)
 
+> 🌐 **실시간 웹서비스 배포 링크**: [https://jnu-mis-movie-recommender-choihamin.streamlit.app](https://jnu-mis-movie-recommender-choihamin.streamlit.app)
+
 가상 한국영화 500편의 비정형 텍스트(줄거리, 장르, 키워드)를 전처리하고, 자연어 처리(NLP) 3대 기법인 **TF-IDF**, **Word2Vec**, **Sentence-BERT** 모델을 적용하여 영화 추천 결과를 나란히 비교하는 Streamlit 웹 애플리케이션입니다.
 
 ---
